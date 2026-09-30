@@ -14,25 +14,29 @@ export default function LoginPage() {
   const { refresh } = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
-      await refresh();
-      router.push(data.user.role === "researcher" ? "/dashboard" : "/admin");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Login failed");
+    await refresh();
+    if (data.user.role === "admin" || data.user.role === "content_manager") {
+      router.push("/admin/approvals");
+    } else {
+      router.push("/dashboard");
     }
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Login failed");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <main className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
